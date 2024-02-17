@@ -32,7 +32,7 @@ pipeline {
                 expression { currentBuild.result == 'SUCCESS' }
             }
             steps {
-                sh 'sudo cp -r ./*.html /var/www/html/'
+                sh 'sudo -S cp -r ./*.html /var/www/html/'
                 sh 'sudo systemctl restart nginx'
             }
         }
