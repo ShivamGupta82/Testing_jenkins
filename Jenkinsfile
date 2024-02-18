@@ -32,7 +32,7 @@ pipeline {
                 expression { currentBuild.result == 'SUCCESS' }
             }
             steps {
-                sh 'sudo -S sh -c "cat ./test.html > /var/www/html/index.nginx-debian.html"'
+                sh 'sudo -S cp -r ./*.html /var/www/html/'
                 sh 'sudo systemctl restart nginx'
             }
         }
