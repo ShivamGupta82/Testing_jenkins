@@ -2,38 +2,35 @@ pipeline {
     agent any
     
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install htmlhint-cli'
-            }
-        }
+  
         stage('Test') {
             steps {
                 script {
-                    def testExitCode = sh(script: 'npx htmlhint /*.html', returnStatus: true)
-                    if (testExitCode == 0) {
-                        echo 'Tests passed, proceeding with deployment'
+                    // Run Python Selenium script
+                    def output = sh(script: 'python3 test_script.py', returnStdout: true).trim()
+                    println "Output of test_script.py: ${output}"
+                    // Check the output to determine the test condition
+                    if (output.contains('Passed')) {
                         currentBuild.result = 'SUCCESS'
                     } else {
-                        echo 'Tests failed, deployment aborted'
                         currentBuild.result = 'FAILURE'
-                        error 'Tests failed, deployment aborted'
                     }
                 }
             }
         }
         stage('Deployment') {
             when {
-                expression { currentBuild.result == 'SUCCESS' }
+                expression {
+                    // Only run the Deployment stage if the Test stage was successful
+                    return currentBuild.result == 'SUCCESS'
+                }
             }
             steps {
-                sh 'sudo -S cp -r ./*.html /var/www/html/'
-                sh 'sudo systemctl restart nginx'
+                script {
+                    // Enclose shell steps in curly braces
+                    sh 'sudo -S cp /var/lib/jenkins/workspace/newP/*.html /var/www/html/'
+                    sh 'sudo -S systemctl restart nginx'
+                }
             }
         }
     }
